@@ -1,35 +1,31 @@
 require("dotenv").config();
 const express = require("express");
-const nodemailer = require("nodemailer");
 const cors = require("cors");
-const dns = require("dns");
-
-// Force la résolution DNS en IPv4 d'abord (corrige les soucis ENETUNREACH avec IPv6 sur Render)
-dns.setDefaultResultOrder("ipv4first");
+const { BrevoClient } = require("@getbrevo/brevo");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+// Configuration Brevo (v5)
+const brevoClient = new BrevoClient({ apiKey: process.env.BREVO_API_KEY });
 
 app.post("/send-email", async (req, res) => {
   const { nom, message } = req.body;
 
   try {
-    await transporter.sendMail({
-      from: `Depan-App <${process.env.EMAIL_USER}>`,
-      to: process.env.EMAIL_TO,
+    await brevoClient.transactionalEmails.sendTransacEmail({
+      htmlContent: message,
+      sender: {
+        name: "Depan-App",
+        email: process.env.EMAIL_USER,
+      },
       subject: "🚨 Nouvelle demande Dépan-App",
-      html: message,
+      to: [
+        {
+          email: process.env.EMAIL_TO,
+        },
+      ],
     });
 
     res.status(200).send("Email envoyé");
