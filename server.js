@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const nodemailer = require("nodemailer");
 const cors = require("cors");
@@ -6,13 +7,13 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// CONFIG EMAIL
+// CONFIG EMAIL (depuis les variables d'environnement)
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: "ibrohillb@gmail.com",
-    pass: "cdzfwqxhtyowbdcc"
-  }
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
 });
 
 // ROUTE
@@ -21,10 +22,10 @@ app.post("/send-email", async (req, res) => {
 
   try {
     await transporter.sendMail({
-        from: "Depan-App <ibrohillb@gmail.com>",
-        to: "ibocoum@groupeisi.com",
-        subject: "🚨 Nouvelle demande Dépan-App",
-        html: message, 
+      from: `Depan-App <${process.env.EMAIL_USER}>`,
+      to: process.env.EMAIL_TO,
+      subject: "🚨 Nouvelle demande Dépan-App",
+      html: message,
     });
 
     res.status(200).send("Email envoyé");
@@ -34,8 +35,9 @@ app.post("/send-email", async (req, res) => {
   }
 });
 
-app.listen(3000, () => {
-  console.log("Serveur lancé sur http://localhost:3000");
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Serveur lancé sur http://localhost:${PORT}`);
 });
 
 // server : node server.js
